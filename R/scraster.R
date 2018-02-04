@@ -16,10 +16,13 @@ sc_coord.RasterLayer <- function(x, ...) {
 #' sc_coord(r)
 #' sc_path(r)
 sc_path.RasterLayer <- function(x, ...) {
-  tibble::tibble(ncoords_ = 4, path = sc_rand(raster::ncell(x)))
+  tibble::tibble(ncoords_ = 4, path = silicate::sc_uid(raster::ncell(x)))
 }
 
-
+wrapq <- function(x) c(x, x[1L])
+sc_edge.BasicRaster <- function(x, ...) {
+  purrr::map_df(purrr::transpose(as_tibble(mesh_index(x))), ~as_tibble(pairs_index(wrapq(unlist(.x)))))
+}
 
 #' the topology
 #'
@@ -27,20 +30,21 @@ sc_path.RasterLayer <- function(x, ...) {
 
 ## from quadmesh:::prs
 pairs_index <- function (x) {
-  cbind(head(x, -1), tail(x, -1))
+  cbind(head(x, -1L), tail(x, -1L))
 }
 ## from quadmesh:::p4
 pair_four <- function (xp, nc)
 {
-  (xp + c(0, 0, rep(nc, 2)))[c(1, 2, 4, 3)]
+  (xp + c(0L, 0L, rep(nc, 2L)))[c(1L, 2L, 4L, 3L)]
 }
 
 ## mesh from quadmesh::quadmesh
 mesh_index <- function(x, ...) {
-  x <- x[[1]]
+  x <- x[[1L]]
   #exy <- sc_coord(x)
-  ind <- apply(pairs_index(seq(ncol(x) + 1)), 1, pair_four, nc = ncol(x) + 1)
-  ind0 <- as.vector(ind) + rep(seq(0, length = nrow(x), by = ncol(x) + 1), each = 4 * ncol(x))
-  ind1 <- t(matrix(ind0, nrow = 4))
-  tibble::as_tibble(ind1)
+  ind <- apply(pairs_index(seq_len(ncol(x) + 1L)), 1L, pair_four, nc = ncol(x) + 1L)
+  ind0 <- as.integer(as.vector(ind) + rep(seq(0L, length = nrow(x), by = ncol(x) + 1L), each = 4L * ncol(x)))
+  ind1 <- t(matrix(ind0, nrow = 4L))
+  #tibble::as_tibble(ind1)
+  ind1
 }
